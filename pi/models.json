@@ -1,0 +1,31 @@
+{
+"$schema": "https://pi.dev/schemas/models.schema.json",
+  "providers": {
+    "vllm": {
+      "baseUrl": "http://gilbreth-n018:8899/v1",
+      "api": "openai-completions",
+      "apiKey": "EMPTY",
+      "compat": {
+        "thinkingFormat": "qwen-chat-template"
+      },
+      "models": [
+            { 
+              "id": "local-coder",
+              "name": "Qwen3.6-35B-A3B AWQ",
+              "reasoning": true,
+              "input": ["text"],
+              "contextWindow": 65536,
+              "maxTokens": 16384,
+              "samplingParams": {
+                "temperature": 0.6,
+                "top_p": 0.95,
+                "top_k": 20,
+                "min_p": 0.0,
+                "presence_penalty": 0.0,
+                "repetition_penalty": 1.0
+              }
+            }
+      ]
+    }
+  }
+}

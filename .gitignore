@@ -1,0 +1,9 @@
+
+**/*.swp
+/huggingface
+package*
+
+/pi/models-store.json
+/pi/sessions
+/pi/settings.json
+/pi/auth.json
