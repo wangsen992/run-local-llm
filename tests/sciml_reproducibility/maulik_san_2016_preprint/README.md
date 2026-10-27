@@ -30,7 +30,7 @@
       very long time (at least 2 hours). Gemma 4 did not set proper safeguard
       or checks or monitoring, and simply kept waiting. 
 
-![artificial intelligence model comparison for 4 models](./media/artificial_analysis_intelligence_index.png)
+<img src="./media/artificial_analysis_intelligence_index.png" width=300>
 
 ## Harness
 [Pi Coding Agent](https://pi.dev/) is the agent code. 
