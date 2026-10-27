@@ -1,9 +1,13 @@
 
 **/*.swp
 /huggingface
+/llmenv
 package*
 
 /pi/models-store.json
 /pi/sessions
+/pi/missions
 /pi/settings.json
 /pi/auth.json
+/pi/npm
+/pi/pi-subagents
