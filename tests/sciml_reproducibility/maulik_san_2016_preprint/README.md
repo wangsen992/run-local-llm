@@ -32,6 +32,15 @@
 
 <img src="./media/artificial_analysis_intelligence_index.png" width=300>
 
+## Gemma 4 recording
+
+[Watch the two-minute Gemma 4 overview](./media/gemma-4.mp4).
+
+The video preserves the full terminal and adds section captions. Selected
+excerpts cover setup, solver implementation, numerical errors, review findings,
+and attempted recovery. The recording ends with the experiment still running;
+it does not demonstrate a successful reproduction. The video is silent.
+
 ## Harness
 [Pi Coding Agent](https://pi.dev/) is the agent code. 
 
