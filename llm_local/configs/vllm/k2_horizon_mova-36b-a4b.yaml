@@ -1,0 +1,17 @@
+defaults:
+  - base
+model_name: IFM/K2-Horizon-MoVA-36B-A4B
+kv_args:
+  chat-template-content-format: string
+  tensor-parallel-size: 2
+  dtype: bfloat16
+  max-model-len: 32768
+  gpu-memory-utilization: 0.90
+  tool-call-parser: k2_horizon
+  reasoning-parser: k2_horizon
+flag_args:
+  - trust-remote-code
+  - enable-expert-parallel
+  - enforce-eager
+  - enable-auto-tool-choice
+  - enable-chunked-prefill

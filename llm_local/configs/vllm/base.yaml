@@ -1,0 +1,14 @@
+kv_args:
+  served-model-name: local-coder
+  host: 0.0.0.0
+  port: 8899
+  tensor-parallel-size: 2
+  dtype: half
+  kv-cache-dtype: auto
+  max-model-len: 16384
+  max-num-seqs: 6
+  gpu-memory-utilization: 0.90
+flag_args:
+  - enforce-eager
+  - enable-auto-tool-choice
+  - enable-chunked-prefill

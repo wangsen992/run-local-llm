@@ -1,0 +1,17 @@
+model_name: Qwen/Qwen3.8-27B-FP8
+kv_args:
+  served-model-name: local-coder
+  host: 0.0.0.0
+  port: 8899
+  tensor-parallel-size: 2
+  dtype: bfloat16
+  kv-cache-dtype: auto
+  max-model-len: 262144
+  max-num-batched-tokens: 2048
+  tool-call-parser: qwen3_coder
+  reasoning-parser: qwen3
+  mm-encoder-tp-mode: data
+flag_args:
+  - enforce-eager
+  - enable-auto-tool-choice
+  - enable-chunked-prefill
