@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class VLLMServer:
 
     def __init__(self, cfg):
+        self.cfg = cfg
         self.command = self.build_command(cfg.model_name, cfg.flag_args, cfg.kv_args)
         self.workspace = tempfile.TemporaryDirectory()
         self.tmp_path = Path(self.workspace.name)
