@@ -1,3 +1,5 @@
+defaults:
+  - base
 model_name: Qwen/Qwen3.8-27B-FP8
 kv_args:
   served-model-name: local-coder
