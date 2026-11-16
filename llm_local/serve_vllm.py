@@ -22,7 +22,7 @@ class VLLMServer:
     - .close(): terminate the server process, clean up tmp folder and close file objects.
     - .monitor(): start monitoring state. can receive keyboard interrupt to close.
 
-    After server started, the server should be observable. 
+    After server started, the server should be observable through "server_info"
 
     """
 
@@ -103,8 +103,9 @@ class VLLMServer:
             logger.info("\nKeyboardInterrupt caught! Stopping subprocess..")
             self.close()
 
-        returncode = self.process.wait()
-        return returncode
+        self.process.wait()
+        if self.process.returncode != 0:
+            raise subprocess.CalledProcessError(f"vllm process exited abnormally. check log for detail. ")
 
     @staticmethod
     def build_command(
@@ -127,7 +128,9 @@ def main(cfg):
 
     server = VLLMServer(cfg.vllm)
     server.start()
-    returncode = server.monitor()
+
+    server.monitor()
+
     server.close()
     logger.info("End of Script")
 

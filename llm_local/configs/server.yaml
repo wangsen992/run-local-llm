@@ -2,4 +2,8 @@ defaults:
   - huggingface: default
   - vllm: cyankiwi_qwen36-35b-a3b-awq-4bit
 
+hydra:
+  job:
+    chdir: true
+
 
