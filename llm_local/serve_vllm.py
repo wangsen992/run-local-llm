@@ -7,10 +7,24 @@ import logging
 
 from omegaconf import DictConfig, OmegaConf
 import hydra
+import json
 
 logger = logging.getLogger(__name__)
 
+startup_str = "startup complete"
+
 class VLLMServer:
+    """Server class for vllm
+
+    Manages the lifecycle for vllm server through subprocess. 
+
+    - .start(): start the server, exit method after the server is ready to use. 
+    - .close(): terminate the server process, clean up tmp folder and close file objects.
+    - .monitor(): start monitoring state. can receive keyboard interrupt to close.
+
+    After server started, the server should be observable. 
+
+    """
 
     def __init__(self, cfg):
         self.cfg = cfg
@@ -25,8 +39,23 @@ class VLLMServer:
                 "HF_HOME": cfg.huggingface.home
                 })
         self.process = None
+        self.log_file = open("./vllm-output.log", "w", buffering=1)
+        self.server_info_path = Path("./server_info.json")
+        self.server_info = {
+                "hostname": self.envs["HOSTNAME"],
+                "port": self.cfg.kv_args.port,
+                "model-id": self.cfg.kv_args["served-model-name"],
+                "model-name": self.cfg["model_name"],
+                "contextWindow": self.cfg.kv_args["max-model-len"],
+                "server_ready": False
+                }
+        self.update_server_info()
+        
+    def update_server_info(self):
+        with open(self.server_info_path, "w", encoding="utf-8") as f:
+            json.dump(self.server_info, f)
 
-    def run(self, **input_kwargs):
+    def start(self, **input_kwargs):
         kwargs = dict(
                 stdout=subprocess.PIPE, 
                 stderr=subprocess.STDOUT,
@@ -36,29 +65,46 @@ class VLLMServer:
                 )
         kwargs.update(input_kwargs)
         self.process = subprocess.Popen(self.command, **kwargs)
+        logger.info(f"Child process started: pid={self.process.pid}")
+        for line in self.process.stdout:
+            self.log_file.write(line)
 
+            if startup_str in line:
+                logger.info("vllm server start up complete.")
+                baseUrl=f"http://{self.server_info["hostname"]}:{self.server_info["port"]}/v1"
+                logger.info(f"connect to baseUrl: {baseUrl}")
+                self.server_info["server_ready"]=True
+                self.update_server_info()
+                break
+
+    def close(self):
+        self.server_info["server_ready"]=False
+        self.update_server_info()
+        self.process.terminate()
+        try:
+            self.process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            logger.info("Subprocess did not exit in time; forcing kill")
+            self.process.kill()
+            self.process.wait()
+        finally:
+            logger.info("Subprocess exited.")
+
+        self.workspace.cleanup()
+        logger.info("Temporary workspace cleaned up")
+        self.log_file.close()
+        logger.info("log file closed")
     
     def monitor(self):
         try:
             for line in self.process.stdout:
-                print(line, end="")
-            returncode = self.process.wait()
-            return returncode
+                self.log_file.write(line)
         except KeyboardInterrupt:
-            print("\nKeyboardInterrupt caught! Stopping subprocess..")
-            self.process.terminate()
-            try:
-                self.process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                print("Subprocess did not exit in time; forcing kill")
-                self.process.kill()
-                self.process.wait()
-        finally:
-            print("Cleanup complete")
+            logger.info("\nKeyboardInterrupt caught! Stopping subprocess..")
+            self.close()
 
-    def cleanup(self):
-        self.workspace.cleanup()
-        print("Temporary workspace clean up complete.")
+        returncode = self.process.wait()
+        return returncode
 
     @staticmethod
     def build_command(
@@ -80,10 +126,10 @@ class VLLMServer:
 def main(cfg):
 
     server = VLLMServer(cfg.vllm)
-    server.run()
+    server.start()
     returncode = server.monitor()
-    server.cleanup()
-    print("End of Script")
+    server.close()
+    logger.info("End of Script")
 
 if __name__ == "__main__":
     main()
