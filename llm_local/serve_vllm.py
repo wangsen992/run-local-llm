@@ -11,7 +11,6 @@ import json
 
 logger = logging.getLogger(__name__)
 
-startup_str = "startup complete"
 
 class VLLMServer:
     """Server class for vllm
@@ -56,6 +55,7 @@ class VLLMServer:
             json.dump(self.server_info, f)
 
     def start(self, **input_kwargs):
+        startup_str = "startup complete"
         kwargs = dict(
                 stdout=subprocess.PIPE, 
                 stderr=subprocess.STDOUT,
@@ -75,25 +75,42 @@ class VLLMServer:
                 logger.info(f"connect to baseUrl: {baseUrl}")
                 self.server_info["server_ready"]=True
                 self.update_server_info()
-                break
+                return 0
+        
+        # If no start up string is detected after stdout is closed,
+        # then something is wrong
+        self.process.wait()
+
+        if self.process.returncode != 0:
+            raise subprocess.CalledProcessError(
+                    returncode=self.process.returncode,
+                    cmd=self.command
+                    )
+
+        raise RuntimeError(
+                "Server exited with code 0 before reporting readiness"
+                )
+
 
     def close(self):
-        self.server_info["server_ready"]=False
-        self.update_server_info()
-        self.process.terminate()
-        try:
-            self.process.wait(timeout=10)
-        except subprocess.TimeoutExpired:
-            logger.info("Subprocess did not exit in time; forcing kill")
-            self.process.kill()
-            self.process.wait()
-        finally:
-            logger.info("Subprocess exited.")
+        if self.process is not None and self.process.poll() is None:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                logger.info("Subprocess did not exit in time; forcing kill")
+                self.process.kill()
+                self.process.wait()
+            finally:
+                logger.info("Subprocess exited.")
 
         self.workspace.cleanup()
         logger.info("Temporary workspace cleaned up")
         self.log_file.close()
         logger.info("log file closed")
+        self.server_info["server_ready"]=False
+        self.update_server_info()
+        logger.info("server state updated to not_ready")
     
     def monitor(self):
         try:
@@ -101,11 +118,21 @@ class VLLMServer:
                 self.log_file.write(line)
         except KeyboardInterrupt:
             logger.info("\nKeyboardInterrupt caught! Stopping subprocess..")
-            self.close()
+            raise
 
         self.process.wait()
         if self.process.returncode != 0:
-            raise subprocess.CalledProcessError(f"vllm process exited abnormally. check log for detail. ")
+            raise subprocess.CalledProcessError(
+                    returncode=self.process.returncode,
+                    cmd=self.command
+                    )
+    def serve(self):
+        try:
+            self.start()
+            self.monitor()
+        finally:
+            self.close()
+
 
     @staticmethod
     def build_command(
@@ -127,12 +154,7 @@ class VLLMServer:
 def main(cfg):
 
     server = VLLMServer(cfg.vllm)
-    server.start()
-
-    server.monitor()
-
-    server.close()
-    logger.info("End of Script")
+    server.serve()
 
 if __name__ == "__main__":
     main()
