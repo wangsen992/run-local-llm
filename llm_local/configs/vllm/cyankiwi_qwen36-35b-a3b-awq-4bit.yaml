@@ -1,3 +1,5 @@
+defaults:
+  - base
 model_name: cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit
 kv_args:
   served-model-name: local-coder
