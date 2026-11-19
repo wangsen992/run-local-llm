@@ -43,8 +43,8 @@ class VLLMServer:
         self.server_info = {
                 "hostname": self.envs["HOSTNAME"],
                 "port": self.cfg.kv_args.port,
-                "model-id": self.cfg.kv_args["served-model-name"],
-                "model-name": self.cfg["model_name"],
+                "modelid": self.cfg.kv_args["served-model-name"],
+                "modelname": self.cfg["model_name"],
                 "contextWindow": self.cfg.kv_args["max-model-len"],
                 "server_ready": False
                 }

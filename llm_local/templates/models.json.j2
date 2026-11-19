@@ -1,0 +1,23 @@
+{
+"$schema": "https://pi.dev/schemas/models.schema.json",
+  "providers": {
+    "vllm": {
+      "baseUrl": "http://{{ hostname }}:{{ port }}/v1",
+      "api": "openai-completions",
+      "apiKey": "EMPTY",
+      "models": [
+            { 
+              "id": "{{ modelid }}",
+              "name": "{{ modelname }}",
+              "contextWindow": {{ contextWindow }},
+              "reasoning": true,
+              "compat": {
+                "requiresReasoningContentOnAssistantMessages": true
+              },
+              "input": ["text", "image"],
+              "maxTokens": 16384
+              }
+      ]
+    }
+  }
+}
