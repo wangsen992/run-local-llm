@@ -1,6 +1,7 @@
 huggingface:
   home: ${oc.env:SCRATCH}/huggingface 
 examples: /pscratch/sd/w/wang7736/run-local-llm/examples
+model_path: ${.kv_args.served-model-name}
 kv_args:
   served-model-name: local-coder
   host: 0.0.0.0

@@ -1,0 +1,9 @@
+flag_args:
+  - disable-status
+kv_args:
+  account: m5021
+  qos: shared_interactive
+  constraint: gpu
+  nodes: 1
+  gpus: 2
+  time: "1:00:00" 

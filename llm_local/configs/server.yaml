@@ -1,8 +1,11 @@
 defaults:
   - huggingface: default
   - vllm: cyankiwi_qwen36-35b-a3b-awq-4bit
+  - slurm: default
 
 hydra:
+  run:
+    dir: ./debug
   job:
     chdir: true
 
