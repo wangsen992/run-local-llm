@@ -117,7 +117,7 @@ class VLLMServer:
             for line in self.process.stdout:
                 self.log_file.write(line)
         except KeyboardInterrupt:
-            logger.info("\nKeyboardInterrupt caught! Stopping subprocess..")
+            logger.info("KeyboardInterrupt caught! Stopping subprocess..")
             raise
 
         self.process.wait()
@@ -130,6 +130,8 @@ class VLLMServer:
         try:
             self.start()
             self.monitor()
+        except KeyboardInterrupt:
+            pass
         finally:
             self.close()
 
