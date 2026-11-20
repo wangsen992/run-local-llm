@@ -28,5 +28,7 @@ RUN npm install -g @earendil-works/pi-coding-agent@1.5.2 && \
     npm cache clean --force
 
 WORKDIR /workspace
+RUN git clone -b work/sandboxing https://github.com/wangsen992/run-local-llm.git && \
+    pip install ./run-local-llm[agent]
 
 CMD ["/bin/bash"]
