@@ -2,6 +2,7 @@ import os
 import subprocess
 from pathlib import Path
 import logging
+import argparse
 
 from llm_local.pi_agent_base import PiAgentBase
 from llm_local.model_info import ModelInfo
@@ -20,7 +21,14 @@ class PiTuiAgent(PiAgentBase):
 
 if __name__ == "__main__":
 
-    pi = PiTuiAgent(pi_dir="./preset_servers/genai_pi/") 
+    parser = argparse.ArgumentParser(
+            prog="Pi TUI",
+            description="Start a TUI session with pi coding agent"
+            )
+    parser.add_argument("--pi_dir",required=True)
+    args = parser.parse_args()
+
+    pi = PiTuiAgent(pi_dir=args.pi_dir) 
     pi.run_tui()
 
     # model = ModelInfo("./debug/qwen3.8-27b-fp8/")
