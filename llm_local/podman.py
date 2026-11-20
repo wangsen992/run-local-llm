@@ -1,6 +1,3 @@
-## code to run the containerized agent
-# podman-hpc run -it --rm -v "./preset_servers/genai_pi:/workspace/pi_preset:ro" localhost/pi-agent:dev 
-
 import shutil
 import subprocess
 import os
@@ -23,6 +20,7 @@ def build_image(
         build_dir="./podman/agent",
         containerfile="./podman/agent/Containerfile"
         ):
+
     if not shutil.which("podman-hpc"):
         raise ValueError("podman-hpc is not available in your system")
     logger.info("podman-hpc is available")
@@ -47,3 +45,8 @@ if __name__ == "__main__":
 
     image_name = "localhost/pi-agent:dev"
 
+    ## code to run the containerized agent
+    # podman-hpc run -it --rm -v "./preset_servers/genai_pi:/workspace/pi_preset:ro" localhost/pi-agent:dev 
+
+    
+    
