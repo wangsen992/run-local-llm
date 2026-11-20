@@ -11,7 +11,8 @@ from pi_agent.errors import PiCommandError
 from llm_local.model_info import ModelInfo
 
 logger = logging.getLogger(__name__)
-template_path = Path("./llm_local/templates/")
+file_path = Path(__file__)
+template_path = file_path.parent/"templates"
 with open(template_path / "models.json.j2", "r") as f:
     template_str = f.read()
 
