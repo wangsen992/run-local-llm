@@ -1,4 +1,8 @@
 
+debug
+env/
+outputs/
+
 **/__pycache__/
 **/*.swp
 /huggingface
@@ -12,3 +16,6 @@ package*
 /pi/auth.json
 /pi/npm
 /pi/pi-subagents
+
+.vim-local/
+project.vim

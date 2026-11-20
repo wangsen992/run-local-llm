@@ -1,6 +1,6 @@
 defaults:
   - huggingface: default
-  - vllm: cyankiwi_qwen36-35b-a3b-awq-4bit
+  - vllm: qwen_qwen38-27b-fp8
   - slurm: default
 
 hydra:

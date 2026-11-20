@@ -2,7 +2,7 @@ defaults:
   - base
 model_name: cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit
 kv_args:
-  served-model-name: local-coder
+  served-model-name: cyankiwi-qwen3.6-4bit
   host: 0.0.0.0
   port: 8899
   tensor-parallel-size: 2

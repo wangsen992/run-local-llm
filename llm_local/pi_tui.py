@@ -20,7 +20,7 @@ class PiTuiAgent(PiAgentBase):
 
 if __name__ == "__main__":
 
-    pi = PiTuiAgent(pi_dir="./genai_pi/") 
+    pi = PiTuiAgent(pi_dir="./preset_servers/genai_pi/") 
     pi.run_tui()
 
     # model = ModelInfo("./debug/qwen3.8-27b-fp8/")
