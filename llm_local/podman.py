@@ -46,16 +46,19 @@ def build_image(
     migrate_cmd = [podman_cmd, "migrate", image_name]
     result = subprocess.run(migrate_cmd)
 
-if __name__ == "__main__":
+def run_pi_tui(
+        source_pi_dir, 
+        workspace_dir=None
+        ):
 
-    image_name = "localhost/pi-agent:dev"
-    build_image(image_name)
-
-    source_pi_dir = Path("./preset_servers/genai_pi/")
-    workspace_dir = Path(f"./test_agents/agent-{random_string_gen(6)}")
+    # prepare pi directory and workspace
+    if workspace_dir is None:
+        workspace_dir = Path(f"./test_agents/agent-{random_string_gen(6)}")
     workspace_dir.mkdir(parents=True)
     target_pi_dir = workspace_dir / "pi"
     shutil.copytree(source_pi_dir, target_pi_dir)
+
+    # construct flags
     mounts=[f"{workspace_dir.resolve().as_posix()}:/workspace"]
     mount_args = [item for m in mounts for item in ['-v', m]]
     flags = [
@@ -76,5 +79,36 @@ if __name__ == "__main__":
     command.extend(prog_cmd)
 
     subprocess.run(command)
-    ## code to run the containerized agent
-    # podman-hpc run -it --rm -v "./preset_servers/genai_pi:/workspace/pi_preset:ro" localhost/pi-agent:dev 
+    return 0
+
+class Podman:
+
+    def __init__(self):
+        if shutil.which("podman-hpc") is not None:
+            self.cmd = "podman-hpc"
+        elif shutil.which("podman") is not None:
+            self.cmd = "podman"
+        else:
+            raise FileNotFoundError("Neither podman nor podman-hpc exists.")
+
+    def run(
+            self, 
+            image="ubuntu:24.04",
+            prog=["/bin/bash"],
+            remove=False,
+            interactive=False,
+            mounts=[".:/workspace:ro"],
+            env={},
+            ):
+        pass
+
+if __name__ == "__main__":
+
+    image_name = "localhost/pi-agent:dev"
+    build_image(image_name)
+
+    # Prepare workspace dir
+    source_pi_dir = Path("./preset_servers/genai_pi/")
+    workspace_dir = Path(f"./test_agents/agent-{random_string_gen(6)}")
+    run_pi_tui(source_pi_dir, workspace_dir)
+

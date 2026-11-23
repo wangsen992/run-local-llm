@@ -33,6 +33,7 @@ class PiAgentBase:
         self.pi_coding_agent_dir.mkdir(parents=True, exist_ok=True)
 
         if "model" in kwargs:
+            model = kwargs["model"]
             if isinstance(model, ModelInfo):
                 self.construct_pi_dir_from_model_info(model)
             else:
