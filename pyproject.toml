@@ -19,4 +19,5 @@ agent = [
 server = [
     "vllm==0.33.0",
 ]
+devel = ["python-lsp-server"]
 
