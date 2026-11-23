@@ -1,23 +1,33 @@
 
-environment => resource allocation => model servers
-  => agent clinet => task execution => saved evidence
+## Mon Nov 23 04:59:06 PM UTC 2026
+Design decision needed here. 
 
-for each stage: 
-- which file controls it? 
-- What does it assume about the machine? 
-- What observable result proves it works? 
+Concrete behavior: 
+Controller, deployment launcher, application launcher, and the program code are
+separate scripts connected through message passing. 
 
+- User starts the controller, with the full configurations of the deployment
+  launchers and the program. 
+- For each deployment launcher, it needs to check that the environment has the
+  sufficient dependencies, it has the necessary resources to run
+- Communication between the outer launcher (OL) and inner launcher (IL) is done
+  through message passing. Specifically, when the outer launcher launches the
+  inner launcher, it has direct access to its stdout and stderr, from which OL
+  can monitor and detect events from IL. IL therefore must present the correct
+  log and event messages to the OL.  
+  [ ] Define event schema
+- Application launcher is the last launcher that directly launch individual
+  applications. Interface with each program must therefore be specifically
+  defined.
 
-First step is to have a minimal working model on aurora first. 
+What's already in the repo: 
+- vllm launch script
+    * `serve_vllm.py` is both a launcher and a program 
+    * `serve_vllm.py` is a launcher script for vllm, because it calls the
+      program code in a subprocess, monitors its stdout and stderr, and does
+      cleanup
+- `pi_tui` launche script
 
-check boundaries: what does the test have to achieve? 
-- correct resouce detection / usage
-- connects to the target model
-- can respond to simple text request
-- can work with tool use
-- tracable configuration and logs
+To prevent a massive input from user, Hydra helps with setting most of the
+default configurations. It also makes command line argument input simple
 
-I want to run everything on aurora rather than have agent run locally. 
-- This is important because tasks can use cluster CPUs rather than my local
-machine. 
-- Reproducible agent runs
