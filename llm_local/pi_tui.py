@@ -17,27 +17,17 @@ class PiTuiAgent(PiAgentBase):
     def run_tui(self):
         envs = os.environ.copy()
         envs["PI_CODING_AGENT_DIR"] = self.pi_coding_agent_dir.as_posix()
-        result = subprocess.run("pi", env=envs)
+        result = subprocess.run("pi", cwd=self.workspace_dir, env=envs)
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(
-            prog="Pi TUI",
-            description="Start a TUI session with pi coding agent"
-            )
-    parser.add_argument("--pi_dir",required=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", help="hostname")
+    parser.add_argument("--port", help="port")
     args = parser.parse_args()
-
-    pi = PiTuiAgent(pi_dir=args.pi_dir) 
+    pi = PiTuiAgent(
+            agent_dir=None,
+            hostname=args.host,
+            port=args.port)
     pi.run_tui()
-
-    # model = ModelInfo("./debug/qwen3.8-27b-fp8/")
-    # model.wait_util_ready()
-
-    # pi = PiTuiAgent(model)
-    # pi.run_tui()
-
-    # logger.info("pi interactive session completed")
-    
-
 
