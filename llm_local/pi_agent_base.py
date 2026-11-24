@@ -50,10 +50,10 @@ class PiAgentBase:
         # [x] init when agent_dir is not present
         if not self.agent_dir.exists():
             self.agent_dir.mkdir(parents=True)
-            self.pi_coding_agent_dir: Path = Path(self.agent_dir/"pi").resolve()
-            self.pi_coding_agent_dir.mkdir(parents=True, exist_ok=True)
-            self.workspace_dir: Path = Path(self.agent_dir/"workspace").resolve()
-            self.workspace_dir.mkdir(parents=True, exist_ok=True)
+            self.pi_coding_agent_dir: Path = Path(self.agent_dir/"pi")
+            self.pi_coding_agent_dir.mkdir(parents=True)
+            self.workspace_dir: Path = Path(self.agent_dir/"workspace")
+            self.workspace_dir.mkdir(parents=True)
 
             # write models.json
             if hostname is None or port is None:
@@ -62,8 +62,23 @@ class PiAgentBase:
             with open(self.pi_coding_agent_dir/"models.json", 'w') as f:
                 f.write(models_json_str)
 
-        if self._has_connection():
-            logger.info("Pi Agent established good connection")
+            if self._has_connection():
+                logger.info("Pi Agent established good connection")
+
+        else:
+            # check if directory structure is correct
+            self.pi_coding_agent_dir: Path = Path(self.agent_dir/"pi")
+            if not (self.pi_coding_agent_dir / "models.json").exists():
+                raise FileNotFoundError(f"No models.json in {self.pi_coding_agent_dir}")
+            self.workspace_dir: Path = Path(self.agent_dir/"workspace")
+
+            if self._has_connection():
+                logger.info("Pi Agent established good connection")
+            else:
+                error_msg = f"Existing {agent_dir} doesn't work. "
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+
 
     def _has_connection(self):
         """

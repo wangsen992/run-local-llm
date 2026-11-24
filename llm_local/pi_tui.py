@@ -24,9 +24,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", help="hostname")
     parser.add_argument("--port", help="port")
+    parser.add_argument("--agent-dir", help="agent_dir") 
     args = parser.parse_args()
     pi = PiTuiAgent(
-            agent_dir=None,
+            agent_dir=args.agent_dir,
             hostname=args.host,
             port=args.port)
     pi.run_tui()
