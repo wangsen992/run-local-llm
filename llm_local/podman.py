@@ -1,3 +1,4 @@
+import argparse
 import shutil
 import subprocess
 import os
@@ -17,70 +18,6 @@ def parse_path(input_path):
         raise FileExistsError(f"{input_path.as_posix()} does not exist")
     return input_path
 
-def build_image(
-        image_name: str="localhost/pi-agent-test:dev", 
-        build_dir="./podman/agent",
-        containerfile="./podman/agent/Containerfile"
-        ):
-
-    if not shutil.which("podman-hpc"):
-        raise ValueError("podman-hpc is not available in your system")
-    logger.info("podman-hpc is available")
-    podman_cmd = "podman-hpc"
-
-    
-    build_dir = parse_path(build_dir)
-    containerfile = parse_path(containerfile)
-    build_cmd = [ 
-                 podman_cmd, "build",
-                 "-f", containerfile,
-                 "-t", image_name,
-                 build_dir.as_posix()
-                 ]
-    logger.info(f"build_cmd: {build_cmd}")
-
-    result = subprocess.run(build_cmd)
-    if result.returncode != 0:
-        raise ValueError("podman image build failed")
-
-    migrate_cmd = [podman_cmd, "migrate", image_name]
-    result = subprocess.run(migrate_cmd)
-
-def run_pi_tui(
-        source_pi_dir, 
-        workspace_dir=None
-        ):
-
-    # prepare pi directory and workspace
-    if workspace_dir is None:
-        workspace_dir = Path(f"./test_agents/agent-{random_string_gen(6)}")
-    workspace_dir.mkdir(parents=True)
-    target_pi_dir = workspace_dir / "pi"
-    shutil.copytree(source_pi_dir, target_pi_dir)
-
-    # construct flags
-    mounts=[f"{workspace_dir.resolve().as_posix()}:/workspace"]
-    mount_args = [item for m in mounts for item in ['-v', m]]
-    flags = [
-            "-it", "--rm",
-            "-e", "PURDUE_RCAC_GENAI_APIKEY"
-            ]
-    prog_cmd =[
-            "python", "-m", "llm_local.pi_tui", 
-            "--pi_dir", "/workspace/pi"
-            ]
-    command = [
-            "podman-hpc", "run",
-            ]
-
-    command.extend(flags)
-    command.extend(mount_args)
-    command.append(image_name)
-    command.extend(prog_cmd)
-
-    subprocess.run(command)
-    return 0
-
 class Podman:
 
     def __init__(self):
@@ -91,6 +28,43 @@ class Podman:
         else:
             raise FileNotFoundError("Neither podman nor podman-hpc exists.")
 
+
+    def has_image(self, image_name): 
+        result = subprocess.run(
+                [self.cmd, "run", "--rm", image_name, "ls"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True)
+        if result.returncode != 0:
+            return False
+        else:
+            return True
+
+    def build_image(
+            self,
+            image_name: str="localhost/pi-agent-test:dev", 
+            build_dir="./podman/agent",
+            containerfile="./podman/agent/Containerfile"
+            ):
+
+        build_dir = parse_path(build_dir)
+        containerfile = parse_path(containerfile)
+        build_cmd = [ 
+                     self.cmd, "build",
+                     "-f", containerfile,
+                     "-t", image_name,
+                     build_dir.as_posix()
+                     ]
+        logger.info(f"build_cmd: {build_cmd}")
+
+        result = subprocess.run(build_cmd)
+        if result.returncode != 0:
+            raise ValueError("podman image build failed")
+        
+        if self.cmd == "podman-hpc":
+            migrate_cmd = [self.cmd, "migrate", image_name]
+            result = subprocess.run(migrate_cmd)
+
     def run(
             self, 
             image="ubuntu:24.04",
@@ -99,16 +73,73 @@ class Podman:
             interactive=False,
             mounts=[".:/workspace:ro"],
             env={},
+            **kwargs,
             ):
-        pass
+
+        command = [self.cmd, "run"]
+        if remove:
+            command.append("--rm")
+        if interactive:
+            command.append("-it")
+        envs_items = []
+        for key, val in env.items():
+            envs_items.extend([ "-e", f"{key}={val}"])
+        command.extend(envs_items)
+        mount_items = []
+        for m in mounts:
+            mount_items.extend(["-v", m])
+        command.extend(mount_items)
+        kv_items = []
+        for k, v in kwargs.items():
+            kv_items.extend([f"--{k}", v])
+        command.extend(kv_items)
+        command.append(image)
+        command.extend(prog)
+
+
+        result = subprocess.run(
+                command)
 
 if __name__ == "__main__":
 
-    image_name = "localhost/pi-agent:dev"
-    build_image(image_name)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--host", help="hostname")
+    parser.add_argument("--port", help="port")
+    parser.add_argument("--agent-dir", help="agent_dir", required=True) 
+    args = parser.parse_args()
 
-    # Prepare workspace dir
-    source_pi_dir = Path("./preset_servers/genai_pi/")
-    workspace_dir = Path(f"./test_agents/agent-{random_string_gen(6)}")
-    run_pi_tui(source_pi_dir, workspace_dir)
+    image_name = "localhost/pi-agent:dev"
+    podman = Podman()
+    if podman.has_image(image_name):
+        print(f"podman has image {image_name}")
+    else:
+        print(f"podman doesn't have image {image_name}, build it now.")
+        podman.build_image(
+                image_name=image_name,
+                build_dir="./podman/agent",
+                containerfile="./podman/agent/Containerfile"
+                )
+
+    # run a pi agent to test
+    agent_dir = Path(args.agent_dir).resolve()
+    assert agent_dir.exists()
+
+    pod_agent_dir = Path("/workspace")
+    mounts = [f"{agent_dir.as_posix()}:{pod_agent_dir.as_posix()}"]
+    envs ={"PURDUE_RCAC_GENAI_APIKEY": os.environ["PURDUE_RCAC_GENAI_APIKEY"] }
+    kv = {}
+    prog = [
+            "python", "-m", "llm_local.pi_tui",
+            "--agent-dir", pod_agent_dir.as_posix()
+            ]
+    podman.run(
+            image=image_name,
+            prog=prog,
+            remove=True,
+            interactive=True,
+            mounts=mounts,
+            env=envs,
+            **kv
+            )
+    
 
