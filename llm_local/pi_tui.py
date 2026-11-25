@@ -5,12 +5,8 @@ import logging
 import argparse
 
 from llm_local.pi_agent_base import PiAgentBase
-from llm_local.model_info import ModelInfo
-
 
 logger = logging.getLogger(__name__)
-
-
 
 class PiTuiAgent(PiAgentBase):
 
@@ -31,4 +27,3 @@ if __name__ == "__main__":
             hostname=args.host,
             port=args.port)
     pi.run_tui()
-
