@@ -2,21 +2,16 @@ import os
 import json
 import jinja2
 from pathlib import Path
-import random
-import string
 import logging
 from pi_agent.coding import PiClient
 from pi_agent.errors import PiCommandError
 
 
 from llm_local.ping_vllm import create_models_json_from_host_n_port
+from llm_local.utils import random_string_gen
 
 logger = logging.getLogger(__name__)
 
-def random_string_gen(n=6):
-
-    characters = string.ascii_letters + string.digits
-    return "".join(random.choices(characters, k=n))
 
 # starting an agent requires bare minimum the pi dir. 
 # Reading model info to start pi agent is an additional step 
@@ -68,6 +63,15 @@ class PiAgentBase:
         else:
             # check if directory structure is correct
             self.pi_coding_agent_dir: Path = Path(self.agent_dir/"pi")
+            if not self.pi_coding_agent_dir.exists():
+                self.pi_coding_agent_dir.mkdir(parents=True)
+                # write models.json
+                if hostname is None or port is None:
+                    raise ValueError("hostname and port must be provided")
+                models_json_str = create_models_json_from_host_n_port(hostname, port)
+                with open(self.pi_coding_agent_dir/"models.json", 'w') as f:
+                    f.write(models_json_str)
+
             if not (self.pi_coding_agent_dir / "models.json").exists():
                 raise FileNotFoundError(f"No models.json in {self.pi_coding_agent_dir}")
             self.workspace_dir: Path = Path(self.agent_dir/"workspace")
