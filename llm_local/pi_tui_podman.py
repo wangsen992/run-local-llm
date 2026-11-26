@@ -59,7 +59,7 @@ if __name__ == "__main__":
     if not agent_dir.exists():
         agent_dir.mkdir(parents=True)
 
-    pod_agent_dir = Path("/workspace/agent")
+    pod_agent_dir = Path("/workspace")
     mounts = [f"{agent_dir.as_posix()}:{pod_agent_dir.as_posix()}"]
     envs = {}
     if args.host is None:

@@ -75,6 +75,8 @@ class PiAgentBase:
             if not (self.pi_coding_agent_dir / "models.json").exists():
                 raise FileNotFoundError(f"No models.json in {self.pi_coding_agent_dir}")
             self.workspace_dir: Path = Path(self.agent_dir/"workspace")
+            if not self.workspace_dir.exists():
+                self.workspace_dir.mkdir(parents=True)
 
             if self._has_connection():
                 logger.info("Pi Agent established good connection")
